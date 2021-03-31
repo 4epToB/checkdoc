@@ -8,8 +8,14 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "bootstrap": "^4.6.0",
+    "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
-    "vue": "^2.6.11"
+    "multer": "^1.4.2",
+    "signature_pad": "^3.0.0-beta.4",
+    "vue": "^2.6.11",
+    "vue-router": "^3.5.1",
+    "vue-signature-pad": "^2.0.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
