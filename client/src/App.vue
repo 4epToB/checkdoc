@@ -33,7 +33,7 @@
                     drop-placeholder="Drop file here..."
                   ></b-form-file>
                 </b-col>
-                <b-button :disabled="disabled" @click="sign">{{buttonText}}</b-button>
+                <b-button :disabled="disabled" @click="check">{{buttonText}}</b-button>
               </div>
              
             </form>   
@@ -74,23 +74,25 @@ export default {
     }
   },
   methods:{
-    login(){  
+    login(){  /* Логин по номеру телефона */
       if(this.telNumber){
         this.visible=!this.visible
         let formData = new FormData(document.forms.login)
-        this.$router.push({ name: "check", params: { telNumber: this.telNumber,formData:formData}})     
+        this.$router.push({ name: "check", params: { telNumber: this.telNumber,formData:formData}})   
+        /* Переходим на страницу с параметрами */  
       } else{
         alert('Введите номер телефона')
       }
     },
-    sign(){
+    check(){/*Отправить документ на проверку/Проверки подписи в зависимости от статуса документа*/
       if(!this.tel2 || !this.tel3 || !this.file || !this.date || !this.expire){
         alert("Заполните поля")
       }else if(this.tel2 == this.tel3){
         alert("Проверяющие должны быть разные")
       }else{
         if(this.buttonText=="Подписи проверены"){
-          this.$socket.send("Подписи проверены")
+          /* Простенькая проверка статуса первой стороны. Если сторона уже может проверять подписи,то собственно этой и произойдет*/
+          this.$socket.send("Подписи проверены")/* Уведомляем всех об этом, но слушаем только там где это надо. */
           this.file=""
           this.tel2=""
           this.tel3=""
@@ -99,28 +101,27 @@ export default {
           this.buttonText="Поставить подпись"
           this.disabled=false
         }
+        /* По дефолту кнопка отправляет форму с данными на сервер. */
         let formData = new FormData(document.forms.upload)
         var xhr= new XMLHttpRequest();
         xhr.open('POST','/',true);
         xhr.send(formData);
         this.buttonText="Ожидаем проверки..."
-        this.disabled=true
+        this.disabled=true/* ПОка стороны не подписали,блочим кнопку и меняем ее текст */
         xhr.onreadystatechange=function() {//(0 → 1 → 2 → 3 → … → 3 → 4)
             if(xhr.readyState!=4)return;
             if(xhr.status!=200) {
                 alert(xhr.status+': '+xhr.statusText);// обработать ошибку
             }else {
-                console.log("asd"+xhr.responseText); // вывести результат
+                console.log("ответ"+xhr.responseText); // вывести результат
             }
         }
       }
     }
   },
   created(){
-    this.$options.sockets.onmessage = function(data){
-      console.log(data)
-      if (data.data=="Документ проверен"){
-        console.log("Документ проверен,можно проверять подписи")
+    this.$options.sockets.onmessage = function(data){/* подписываемся на входящие сообщения от websocket сервера при на хуке created. */
+      if (data.data=="Документ проверен"){/* Это событие когда 2 и 3 сторона проверили документы. Меняем и активируем кнопку.  */
         this.buttonText="Подписи проверены"
         this.disabled=false
       }
